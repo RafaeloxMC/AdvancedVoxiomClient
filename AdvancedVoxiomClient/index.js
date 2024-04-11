@@ -20,7 +20,7 @@ const config = new store();
 const clientID = "1186209799935889469";
 const RPC = new DiscordRPC.Client({ transport: "ipc" });
 const appVer = app.getVersion()
-//バージョンの取得
+
 ipcMain.handle("appVer", () => {
     return appVer
 });
@@ -29,17 +29,17 @@ ipcMain.handle("cacheClear", () => {
 })
 let splashWindow
 let mainWindow
-// ビルドしてなくてもしてるように見せかける
+
 Object.defineProperty(app, "isPackaged", {
     get() {
         return true;
     },
 });
-//ファイルを開く
+
 ipcMain.handle("openFile", () => {
     let path = dialog.showOpenDialogSync(null, {
         properties: ["openFile"],
-        title: "VVC FILE OPEN",
+        title: "AVC FILE OPEN",
         defaultPath: ".",
         filters: [{
             name: "StyleSheet",
@@ -50,14 +50,13 @@ ipcMain.handle("openFile", () => {
     return path
 })
 
-//カスタムプロトコルの登録
 app.on("ready", () => {
-    protocol.registerFileProtocol("vvc", (request, callback) =>
-        callback(decodeURI(request.url.replace(/^vvc:\//, "")))
+    protocol.registerFileProtocol("avc", (request, callback) =>
+        callback(decodeURI(request.url.replace(/^avc:\//, "")))
     );
 });
 protocol.registerSchemesAsPrivileged([{
-    scheme: "vvc",
+    scheme: "avc",
     privileges: {
         secure: true,
         corsEnabled: true,
@@ -137,14 +136,12 @@ function createMainWindow() {
             preload: path.join(__dirname, "js/preload/game.js"),
             enableHardwareAcceleration: true,
             enableRemoteModule: true,
-            //　↓絶対にお前だけは許さない
-            // contextIsolation: true
-            //　↑絶対にお前だけは許さない
         },
     });
-    mainWindow.title = "Vanced Voxiom Client v" + appVer
+
+    mainWindow.title = "Advanced Voxiom Client v" + appVer
     Menu.setApplicationMenu(null);
-    //ショートカットの登録
+
     localShortcut.register(mainWindow, "Esc", () => {
         mainWindow.webContents.send("ESC")
     })
@@ -174,12 +171,12 @@ function createMainWindow() {
     localShortcut.register(mainWindow, "F12", () => {
         mainWindow.webContents.openDevTools()
     })
-    //ページを閉じられるようにする。
+
     mainWindow.webContents.on('will-prevent-unload', (e) => {
         e.preventDefault()
     })
     mainWindow.webContents.loadURL("https://voxiom.io");
-    //準備ができたら表示
+    
     mainWindow.once("ready-to-show", () => {
         splashWindow.destroy();
         mainWindow.show()
@@ -190,14 +187,14 @@ function createMainWindow() {
     mainWindow.webContents.on("did-navigate-in-page", (event, url) => {
         mainWindow.send("url", url)
     })
-    //リソーススワッパーここから
+    
     let rejectRequest = rejectJson()
     let regPattern = rejectRequest.reject.map(pattern => new RegExp(pattern))
     let files = swapper()
     let json = swapperJson()
     mainWindow.webContents.session.webRequest.onBeforeRequest((details, callback) => {
         if (config.get("resourceSwapperEnable") && files.includes(json[details.url])) {
-            callback({ redirectURL: "vvc://" + path.join(app.getPath('documents'), '/VVC-Swapper', json[details.url]) });
+            callback({ redirectURL: "avc://" + path.join(app.getPath('documents'), '/AVC-Swapper', json[details.url]) });
             log.info(json[details.url])
         } else if (regPattern.some(regex => regex.test(details.url))) {
             callback({ cancel: true });
@@ -210,7 +207,7 @@ function createMainWindow() {
 }
 const rejectJson = () => {
     const filePath = swapper().includes("rejectConfig.json") ?
-        path.join(app.getPath('documents'), '/VVC-Swapper', 'rejectConfig.json') :
+        path.join(app.getPath('documents'), '/AVC-Swapper', 'rejectConfig.json') :
         path.join(__dirname, "js/rejectConfig.json");
     try {
         let data = fs.readFileSync(filePath, 'utf8')
@@ -222,7 +219,7 @@ const rejectJson = () => {
 }
 const swapperJson = () => {
     const filePath = swapper().includes("swapperConfig.json") ?
-        path.join(app.getPath('documents'), '/VVC-Swapper', 'swapperConfig.json') :
+        path.join(app.getPath('documents'), '/AVC-Swapper', 'swapperConfig.json') :
         path.join(__dirname, "js/swapperConfig.json");
     try {
         let data = fs.readFileSync(filePath, 'utf8')
@@ -231,7 +228,7 @@ const swapperJson = () => {
     } catch (e) { }
 };
 const swapper = () => {
-    const swapperPath = path.join(app.getPath('documents'), '/VVC-Swapper')
+    const swapperPath = path.join(app.getPath('documents'), '/AVC-Swapper')
     if (!fs.existsSync(swapperPath)) {
         fs.mkdirSync(swapperPath, { recursive: true })
     }
@@ -257,7 +254,7 @@ app.whenReady().then(() => {
         today.getHours() + "-" +
         today.getMinutes() + "-" +
         today.getSeconds();
-    const logString = dateString + "_VVC-main.log";
+    const logString = dateString + "_AVC-main.log";
     log.transports.file.fileName = `${logString}`
 })
 
