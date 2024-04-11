@@ -31,7 +31,7 @@ module.exports = {
 		type: "text",
 		val: config.get("customGameLogoText"),
 		restart: false,
-		default: "Vanced Voxiom Client for Noobs.",
+		default: "Advanced Voxiom Client for the real pros.",
 	},
 	customCrosshairCheck: {
 		cat: "Crosshair",
